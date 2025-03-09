@@ -51,7 +51,7 @@
       font-size: 0.9em;
       color: #666;
     }
-    /* Updated Toggle Button CSS */
+    /* Toggle Button CSS */
     .toggle-button {
       background: none;
       border: none;
@@ -92,6 +92,7 @@
     <option value="none">None</option>
     <option value="PG&E">PG&E</option>
     <option value="Edison">Edison</option>
+    <option value="LADWP">LADWP</option>
     <option value="other">Other</option>
   </select>
   
@@ -106,11 +107,8 @@
     </select>
   </div>
   
-  <!-- Panel System Cost Inputs (for systems can be computed from usage, but we show computed cost) -->
+  <!-- Panel System Cost Explanation -->
   <p class="small-text">The system cost is computed based on panels required.</p>
-  
-  <!-- Toggle for custom calculation adjustments (if desired) -->
-  <!-- (For consistency, we could add a toggle here if you want to allow custom cost inputs, but it's not required) -->
   
   <button id="calculateBtn">Calculate System Cost</button>
   
@@ -125,7 +123,7 @@
       });
     }
     
-    // Format input fields on blur/focus for commas
+    // Format input field on blur and remove formatting on focus
     function formatInputField(event) {
       let el = event.target;
       let value = el.value.replace(/,/g, '');
@@ -147,6 +145,7 @@
     // Show/hide battery options based on utility provider selection
     document.getElementById('utilityProvider').addEventListener('change', function() {
       let batteryDiv = document.getElementById('batteryOptions');
+      // Only PG&E and Edison require a battery
       if (this.value === "PG&E" || this.value === "Edison") {
         batteryDiv.style.display = "block";
       } else {
@@ -167,8 +166,9 @@
       // Formula: panels = ceil( (dailyUsage / 4.25 * 1.3 * 1000) / 400 )
       let requiredPanels = Math.ceil(((dailyUsage / 4.25) * 1.3 * 1000) / 400);
       
-      // System size in watts
+      // System size in watts and kilowatts
       let systemWatts = requiredPanels * 400;
+      let systemKW = systemWatts / 1000;
       
       // Determine cost per watt:
       // If system size is >= 2.6 kW (2600W) use $2.30 per watt; else use $3.25 per watt.
@@ -191,15 +191,13 @@
         <h3>Results</h3>
         <p><strong>Daily Average Usage:</strong> ${formatNumber(dailyUsage)} kWh/day</p>
         <p><strong>Required Panels:</strong> ${requiredPanels}</p>
-        <p><strong>System Size:</strong> ${formatNumber(systemWatts)} W</p>
+        <p><strong>System Size:</strong> ${formatNumber(systemKW)} kW</p>
         <p><strong>Cost per Watt:</strong> $${formatNumber(costPerWatt)}</p>
         <p><strong>System Cost:</strong> $${formatNumber(systemCost)}</p>
       `;
       
       if (batteryCost > 0) {
-        resultsHTML += `
-          <p><strong>Battery Cost:</strong> $${formatNumber(batteryCost)}</p>
-        `;
+        resultsHTML += `<p><strong>Battery Cost:</strong> $${formatNumber(batteryCost)}</p>`;
       }
       
       resultsHTML += `<hr><p><strong>Total Project Cost:</strong> $${formatNumber(totalCost)}</p>`;
